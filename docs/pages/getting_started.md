@@ -286,7 +286,7 @@ use Patchlevel\EventSourcing\EventBus\ChainEventBus;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBus;
+use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBusMiddleware;
 use Patchlevel\EventSourcing\Projection\Projector\SyncProjectorListener;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;
@@ -325,7 +325,7 @@ $eventBus = new ChainEventBus([
     DefaultEventBus::create([
         new SendCheckInEmailProcessor($mailer),
     ]),
-    ProjectionistEventBus::createWithDefaultLockStrategy($projectionist)
+    ProjectionistEventBusMiddleware::createWithDefaultLockStrategy($projectionist)
 ]);
 
 $repositoryManager = new DefaultRepositoryManager(

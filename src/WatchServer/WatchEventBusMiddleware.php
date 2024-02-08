@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcing\WatchServer;
 
-use Patchlevel\EventSourcing\EventBus\EventBus;
+use Patchlevel\EventSourcing\EventBus\BeforeDispatchMiddleware;
 use Patchlevel\EventSourcing\EventBus\Message;
 
-final class WatchEventBus implements EventBus
+final class WatchEventBusMiddleware implements BeforeDispatchMiddleware
 {
     public function __construct(
         private readonly WatchServerClient $watchServerClient,
     ) {
     }
 
-    public function dispatch(Message ...$messages): void
+    public function beforeDispatch(Message ...$messages): void
     {
         try {
             foreach ($messages as $message) {

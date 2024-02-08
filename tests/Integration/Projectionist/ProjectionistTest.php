@@ -13,7 +13,7 @@ use Patchlevel\EventSourcing\Metadata\AggregateRoot\AttributeAggregateRootRegist
 use Patchlevel\EventSourcing\Projection\Projection\ProjectionCriteria;
 use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBus;
+use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBusMiddleware;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
@@ -120,7 +120,7 @@ final class ProjectionistTest extends TestCase
             $store,
             new ChainEventBus([
                 DefaultEventBus::create(),
-                new ProjectionistEventBus(
+                new ProjectionistEventBusMiddleware(
                     $projectionist,
                     new LockFactory($lockStore),
                 ),

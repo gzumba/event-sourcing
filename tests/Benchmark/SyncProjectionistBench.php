@@ -12,7 +12,7 @@ use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\Lock\DoctrineDbalStoreSchemaAdapter;
 use Patchlevel\EventSourcing\Projection\Projection\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBus;
+use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBusMiddleware;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\Repository;
@@ -77,7 +77,7 @@ final class SyncProjectionistBench
 
         $this->bus = new ChainEventBus([
             DefaultEventBus::create([new SendEmailProcessor()]),
-            new ProjectionistEventBus(
+            new ProjectionistEventBusMiddleware(
                 $projectionist,
                 new LockFactory(
                     new LockDoctrineDbalStore($connection),

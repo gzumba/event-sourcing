@@ -21,9 +21,9 @@ This stores the events to be dispatched in the database.
 
 ```php
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
-use Patchlevel\EventSourcing\Outbox\OutboxEventBus;
+use Patchlevel\EventSourcing\Outbox\OutboxEventBusMiddleware;
 
-$eventBus = new OutboxEventBus($store);
+$eventBus = new OutboxEventBusMiddleware($store);
 
 $repositoryManager = new DefaultRepositoryManager(
     $aggregateRootRegistry,

@@ -10,12 +10,12 @@ use Patchlevel\EventSourcing\EventBus\DefaultConsumer;
 use Patchlevel\EventSourcing\EventBus\Serializer\PhpNativeMessageSerializer;
 use Patchlevel\EventSourcing\Outbox\DoctrineOutboxStore;
 use Patchlevel\EventSourcing\Outbox\EventBusPublisher;
-use Patchlevel\EventSourcing\Outbox\OutboxEventBus;
+use Patchlevel\EventSourcing\Outbox\OutboxEventBusMiddleware;
 use Patchlevel\EventSourcing\Outbox\StoreOutboxProcessor;
 use Patchlevel\EventSourcing\Projection\Projection\ProjectionCriteria;
 use Patchlevel\EventSourcing\Projection\Projection\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBus;
+use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBusMiddleware;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
@@ -63,7 +63,7 @@ final class OutboxTest extends TestCase
             'outbox',
         );
 
-        $outboxEventBus = new OutboxEventBus($outboxStore);
+        $outboxEventBus = new OutboxEventBusMiddleware($outboxStore);
 
         $profileProjector = new ProfileProjector($this->connection);
         $projectorRepository = new InMemoryProjectorRepository(
@@ -80,7 +80,7 @@ final class OutboxTest extends TestCase
 
         $eventBus = new ChainEventBus([
             $outboxEventBus,
-            new ProjectionistEventBus(
+            new ProjectionistEventBusMiddleware(
                 $projectionist,
                 new LockFactory(
                     new LockInMemoryStore(),

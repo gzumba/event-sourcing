@@ -8,12 +8,12 @@ use Patchlevel\EventSourcing\EventBus\Message;
 use Patchlevel\EventSourcing\Tests\Unit\Fixture\ProfileId;
 use Patchlevel\EventSourcing\Tests\Unit\Fixture\ProfileVisited;
 use Patchlevel\EventSourcing\WatchServer\SendingFailed;
-use Patchlevel\EventSourcing\WatchServer\WatchEventBus;
+use Patchlevel\EventSourcing\WatchServer\WatchEventBusMiddleware;
 use Patchlevel\EventSourcing\WatchServer\WatchServerClient;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
-/** @covers \Patchlevel\EventSourcing\WatchServer\WatchEventBus */
+/** @covers \Patchlevel\EventSourcing\WatchServer\WatchEventBusMiddleware */
 final class WatchEventBusTest extends TestCase
 {
     use ProphecyTrait;
@@ -25,7 +25,7 @@ final class WatchEventBusTest extends TestCase
         $client = $this->prophesize(WatchServerClient::class);
         $client->send($message)->shouldBeCalled();
 
-        $bus = new WatchEventBus($client->reveal());
+        $bus = new WatchEventBusMiddleware($client->reveal());
         $bus->dispatch($message);
     }
 
@@ -36,7 +36,7 @@ final class WatchEventBusTest extends TestCase
         $client = $this->prophesize(WatchServerClient::class);
         $client->send($message)->shouldBeCalled()->willThrow(SendingFailed::class);
 
-        $bus = new WatchEventBus($client->reveal());
+        $bus = new WatchEventBusMiddleware($client->reveal());
         $bus->dispatch($message);
     }
 }

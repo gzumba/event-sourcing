@@ -6,13 +6,13 @@ namespace Patchlevel\EventSourcing\Tests\Unit\Projection\Projectionist;
 
 use Patchlevel\EventSourcing\EventBus\Message;
 use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBus;
+use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBusMiddleware;
 use Patchlevel\EventSourcing\Tests\Unit\Fixture\ProfileId;
 use Patchlevel\EventSourcing\Tests\Unit\Fixture\ProfileVisited;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
-/** @covers \Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBus */
+/** @covers \Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBusMiddleware */
 final class ProjectionistEventBusTest extends TestCase
 {
     use ProphecyTrait;
@@ -30,7 +30,7 @@ final class ProjectionistEventBusTest extends TestCase
         $projectionist->run()->shouldBeCalledOnce();
         $projectionist->reveal();
 
-        $eventBus = new ProjectionistEventBus(
+        $eventBus = new ProjectionistEventBusMiddleware(
             $projectionist->reveal(),
         );
 
