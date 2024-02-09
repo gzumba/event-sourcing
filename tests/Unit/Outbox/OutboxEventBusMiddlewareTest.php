@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /** @covers \Patchlevel\EventSourcing\Outbox\OutboxEventBusMiddleware */
-final class OutboxEventBusTest extends TestCase
+final class OutboxEventBusMiddlewareTest extends TestCase
 {
     use ProphecyTrait;
 
@@ -31,7 +31,7 @@ final class OutboxEventBusTest extends TestCase
         $store->saveOutboxMessage($message)->shouldBeCalled();
 
         $eventBus = new OutboxEventBusMiddleware($store->reveal());
-        $eventBus->dispatch($message);
+        $eventBus->afterDispatch($message);
     }
 
     public function testDispatchMultipleMessages(): void
@@ -54,6 +54,6 @@ final class OutboxEventBusTest extends TestCase
         $store->saveOutboxMessage($message1, $message2)->shouldBeCalled();
 
         $eventBus = new OutboxEventBusMiddleware($store->reveal());
-        $eventBus->dispatch($message1, $message2);
+        $eventBus->afterDispatch($message1, $message2);
     }
 }

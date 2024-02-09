@@ -11,7 +11,6 @@ use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Projection\Projection\ProjectionCriteria;
 use Patchlevel\EventSourcing\Projection\Projection\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBusMiddleware;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaDirector;
@@ -63,16 +62,8 @@ final class BasicIntegrationTest extends TestCase
             $projectorRepository,
         );
 
-        $eventBus = new ChainEventBus([
-            DefaultEventBus::create([
-                new SendEmailProcessor(),
-            ]),
-            new ProjectionistEventBusMiddleware(
-                $projectionist,
-                new LockFactory(
-                    new LockInMemoryStore(),
-                ),
-            ),
+        $eventBus = DefaultEventBus::create([
+            new SendEmailProcessor(),
         ]);
 
         $manager = new DefaultRepositoryManager(
@@ -95,6 +86,8 @@ final class BasicIntegrationTest extends TestCase
         $profileId = ProfileId::fromString('1');
         $profile = Profile::create($profileId, 'John');
         $repository->save($profile);
+
+        $projectionist->run();
 
         $result = $this->connection->fetchAssociative('SELECT * FROM projection_profile WHERE id = ?', ['1']);
 
@@ -137,16 +130,8 @@ final class BasicIntegrationTest extends TestCase
             $projectorRepository,
         );
 
-        $eventBus = new ChainEventBus([
-            DefaultEventBus::create([
-                new SendEmailProcessor(),
-            ]),
-            new ProjectionistEventBusMiddleware(
-                $projectionist,
-                new LockFactory(
-                    new LockInMemoryStore(),
-                ),
-            ),
+        $eventBus = DefaultEventBus::create([
+            new SendEmailProcessor(),
         ]);
 
         $manager = new DefaultRepositoryManager(
@@ -169,6 +154,8 @@ final class BasicIntegrationTest extends TestCase
         $profileId = ProfileId::fromString('1');
         $profile = Profile::create($profileId, 'John');
         $repository->save($profile);
+
+        $projectionist->run();
 
         $result = $this->connection->fetchAssociative('SELECT * FROM projection_profile WHERE id = ?', ['1']);
 

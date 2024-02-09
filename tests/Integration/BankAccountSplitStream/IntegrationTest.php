@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace Patchlevel\EventSourcing\Tests\Integration\BankAccountSplitStream;
 
 use Doctrine\DBAL\Connection;
-use Patchlevel\EventSourcing\EventBus\ChainEventBus;
 use Patchlevel\EventSourcing\EventBus\Decorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\EventBus\Decorator\SplitStreamDecorator;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
+use Patchlevel\EventSourcing\EventBus\MiddlewareEventBus;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
 use Patchlevel\EventSourcing\Projection\Projection\ProjectionCriteria;
 use Patchlevel\EventSourcing\Projection\Projection\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBusMiddleware;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Schema\DoctrineSchemaDirector;
@@ -64,15 +63,7 @@ final class IntegrationTest extends TestCase
             $projectionRepository,
         );
 
-        $eventBus = new ChainEventBus([
-            DefaultEventBus::create(),
-            new ProjectionistEventBusMiddleware(
-                $projectionist,
-                new LockFactory(
-                    new LockInMemoryStore(),
-                ),
-            ),
-        ]);
+        $eventBus = DefaultEventBus::create();
 
         $manager = new DefaultRepositoryManager(
             new AggregateRootRegistry(['bank_account' => BankAccount::class]),
@@ -98,6 +89,8 @@ final class IntegrationTest extends TestCase
         $bankAccount->addBalance(100);
         $bankAccount->addBalance(500);
         $repository->save($bankAccount);
+
+        $projectionist->run();
 
         $result = $this->connection->fetchAssociative('SELECT * FROM projection_bank_account WHERE id = ?', ['1']);
 
@@ -132,6 +125,8 @@ final class IntegrationTest extends TestCase
         $bankAccount->beginNewMonth();
         $bankAccount->addBalance(200);
         $repository->save($bankAccount);
+
+        $projectionist->run();
 
         $result = $this->connection->fetchAssociative('SELECT * FROM projection_bank_account WHERE id = ?', ['1']);
 

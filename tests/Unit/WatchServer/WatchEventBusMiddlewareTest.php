@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
 /** @covers \Patchlevel\EventSourcing\WatchServer\WatchEventBusMiddleware */
-final class WatchEventBusTest extends TestCase
+final class WatchEventBusMiddlewareTest extends TestCase
 {
     use ProphecyTrait;
 
@@ -26,7 +26,7 @@ final class WatchEventBusTest extends TestCase
         $client->send($message)->shouldBeCalled();
 
         $bus = new WatchEventBusMiddleware($client->reveal());
-        $bus->dispatch($message);
+        $bus->beforeDispatch($message);
     }
 
     public function testIgnoreErrors(): void
@@ -37,6 +37,6 @@ final class WatchEventBusTest extends TestCase
         $client->send($message)->shouldBeCalled()->willThrow(SendingFailed::class);
 
         $bus = new WatchEventBusMiddleware($client->reveal());
-        $bus->dispatch($message);
+        $bus->beforeDispatch($message);
     }
 }

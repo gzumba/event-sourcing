@@ -7,6 +7,7 @@ namespace Patchlevel\EventSourcing\Tests\Integration\Outbox;
 use Doctrine\DBAL\Connection;
 use Patchlevel\EventSourcing\EventBus\ChainEventBus;
 use Patchlevel\EventSourcing\EventBus\DefaultConsumer;
+use Patchlevel\EventSourcing\EventBus\MiddlewareEventBus;
 use Patchlevel\EventSourcing\EventBus\Serializer\PhpNativeMessageSerializer;
 use Patchlevel\EventSourcing\Outbox\DoctrineOutboxStore;
 use Patchlevel\EventSourcing\Outbox\EventBusPublisher;
@@ -15,7 +16,6 @@ use Patchlevel\EventSourcing\Outbox\StoreOutboxProcessor;
 use Patchlevel\EventSourcing\Projection\Projection\ProjectionCriteria;
 use Patchlevel\EventSourcing\Projection\Projection\Store\InMemoryStore;
 use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistEventBusMiddleware;
 use Patchlevel\EventSourcing\Projection\Projector\InMemoryProjectorRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Schema\ChainSchemaConfigurator;
@@ -63,7 +63,10 @@ final class OutboxTest extends TestCase
             'outbox',
         );
 
-        $outboxEventBus = new OutboxEventBusMiddleware($outboxStore);
+        $eventBus = new MiddlewareEventBus(
+            DoctrineDbalStore::createEventBus($this->connection, $serializer),
+            new OutboxEventBusMiddleware($outboxStore),
+        );
 
         $profileProjector = new ProfileProjector($this->connection);
         $projectorRepository = new InMemoryProjectorRepository(
@@ -77,16 +80,6 @@ final class OutboxTest extends TestCase
         );
 
         $eventBusConsumer = DefaultConsumer::create([new SendEmailProcessor()]);
-
-        $eventBus = new ChainEventBus([
-            $outboxEventBus,
-            new ProjectionistEventBusMiddleware(
-                $projectionist,
-                new LockFactory(
-                    new LockInMemoryStore(),
-                ),
-            ),
-        ]);
 
         $repository = new DefaultRepository($store, $eventBus, Profile::metadata());
 
