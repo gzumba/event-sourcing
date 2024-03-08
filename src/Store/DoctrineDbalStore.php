@@ -7,6 +7,7 @@ namespace Patchlevel\EventSourcing\Store;
 use Closure;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Types\Type;
@@ -326,5 +327,62 @@ final class DoctrineDbalStore implements Store, ArchivableStore, DoctrineSchemaC
                 static fn (object $header) => !in_array($header::class, $filteredHeaders, true)
             ),
         );
+    }
+
+    public function listen(int $microseconds): void
+    {
+        if (!$this->connection->getDatabasePlatform() instanceof PostgreSQLPlatform) {
+            return;
+        }
+
+        $this->connection->executeStatement(sprintf('LISTEN "%s"', $this->storeTableName));
+
+        /** @var \PDO $nativeConnection */
+        $nativeConnection = $this->connection->getNativeConnection();
+
+        $notification = $nativeConnection->pgsqlGetNotify(\PDO::FETCH_ASSOC, $microseconds);
+
+        return;
+
+        if (
+            // no notifications, or for another table or queue
+            (false === $notification || $notification['message'] !== $this->storeTableName)
+        ) {
+            usleep($microseconds);
+        }
+    }
+
+    private function getTriggerSql(): array
+    {
+        $functionName = $this->createTriggerFunctionName();
+
+        return [
+            // create trigger function
+            sprintf(<<<'SQL'
+                CREATE OR REPLACE FUNCTION %1$s() RETURNS TRIGGER AS $$
+                    BEGIN
+                        PERFORM pg_notify('%2$s');
+                        RETURN NEW;
+                    END;
+                $$ LANGUAGE plpgsql;
+                SQL,
+                $functionName,
+                $this->storeTableName
+            ),
+            // register trigger
+            sprintf('DROP TRIGGER IF EXISTS notify_trigger ON %s;', $this->storeTableName),
+            sprintf('CREATE TRIGGER notify_trigger AFTER INSERT OR UPDATE ON %1$s FOR EACH ROW EXECUTE PROCEDURE %2$s();', $this->storeTableName, $functionName),
+        ];
+    }
+
+    private function createTriggerFunctionName(): string
+    {
+        $tableConfig = explode('.', $this->storeTableName);
+
+        if (1 === \count($tableConfig)) {
+            return sprintf('notify_%1$s', $tableConfig[0]);
+        }
+
+        return sprintf('%1$s.notify_%2$s', $tableConfig[0], $tableConfig[1]);
     }
 }

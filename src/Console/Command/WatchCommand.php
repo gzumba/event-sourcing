@@ -66,7 +66,7 @@ final class WatchCommand extends Command
         $index = $this->currentIndex();
 
         $worker = DefaultWorker::create(
-            function () use ($console, &$index, $aggregate, $aggregateId): void {
+            function () use ($console, &$index, $aggregate, $aggregateId, $sleep): void {
                 $stream = $this->store->load(
                     new Criteria(
                         $aggregate,
@@ -81,6 +81,8 @@ final class WatchCommand extends Command
                 }
 
                 $stream->close();
+
+                $this->store->listen($sleep);
             },
             [],
         );
