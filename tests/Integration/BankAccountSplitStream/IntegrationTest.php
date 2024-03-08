@@ -9,10 +9,10 @@ use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\Serializer\DefaultHeadersSerializer;
 use Patchlevel\EventSourcing\Metadata\AggregateRoot\AggregateRootRegistry;
 use Patchlevel\EventSourcing\Metadata\Event\AttributeEventMetadataFactory;
-use Patchlevel\EventSourcing\Projection\Projection\Store\InMemoryStore;
-use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistCriteria;
-use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorAccessorRepository;
+use Patchlevel\EventSourcing\Projection\Engine\DefaultSubscriptionEngine;
+use Patchlevel\EventSourcing\Projection\Engine\SubscriptionEngineCriteria;
+use Patchlevel\EventSourcing\Projection\Store\InMemorySubscriptionStore;
+use Patchlevel\EventSourcing\Projection\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\ChainMessageDecorator;
 use Patchlevel\EventSourcing\Repository\MessageDecorator\SplitStreamDecorator;
@@ -58,10 +58,10 @@ final class IntegrationTest extends TestCase
 
         $bankAccountProjector = new BankAccountProjector($this->connection);
 
-        $projectionist = new DefaultProjectionist(
+        $projectionist = new DefaultSubscriptionEngine(
             $store,
-            new InMemoryStore(),
-            new MetadataProjectorAccessorRepository([$bankAccountProjector]),
+            new InMemorySubscriptionStore(),
+            new MetadataSubscriberAccessorRepository([$bankAccountProjector]),
         );
 
         $eventBus = DefaultEventBus::create([$bankAccountProjector]);
@@ -83,7 +83,7 @@ final class IntegrationTest extends TestCase
         );
 
         $schemaDirector->create();
-        $projectionist->boot(new ProjectionistCriteria());
+        $projectionist->boot(new SubscriptionEngineCriteria());
 
         $bankAccountId = AccountId::fromString('1');
         $bankAccount = BankAccount::create($bankAccountId, 'John');

@@ -8,10 +8,10 @@ use Patchlevel\EventSourcing\Aggregate\AggregateRootId;
 use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
 use Patchlevel\EventSourcing\EventBus\EventBus;
 use Patchlevel\EventSourcing\EventBus\Serializer\DefaultHeadersSerializer;
-use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
-use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projectionist\Projectionist;
-use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorAccessorRepository;
+use Patchlevel\EventSourcing\Projection\Engine\DefaultSubscriptionEngine;
+use Patchlevel\EventSourcing\Projection\Engine\SubscriptionEngine;
+use Patchlevel\EventSourcing\Projection\Store\DoctrineSubscriptionStore;
+use Patchlevel\EventSourcing\Projection\Subscriber\MetadataSubscriberAccessorRepository;
 use Patchlevel\EventSourcing\Repository\DefaultRepository;
 use Patchlevel\EventSourcing\Repository\Repository;
 use Patchlevel\EventSourcing\Schema\ChainDoctrineSchemaConfigurator;
@@ -33,7 +33,7 @@ final class ProjectionistBench
     private EventBus $bus;
     private Repository $repository;
 
-    private Projectionist $projectionist;
+    private SubscriptionEngine $projectionist;
 
     private AggregateRootId $id;
 
@@ -57,7 +57,7 @@ final class ProjectionistBench
 
         $this->repository = new DefaultRepository($this->store, $this->bus, Profile::metadata());
 
-        $projectionStore = new DoctrineStore(
+        $projectionStore = new DoctrineSubscriptionStore(
             $connection,
         );
 
@@ -81,10 +81,10 @@ final class ProjectionistBench
 
         $this->repository->save($profile);
 
-        $this->projectionist = new DefaultProjectionist(
+        $this->projectionist = new DefaultSubscriptionEngine(
             $this->store,
             $projectionStore,
-            new MetadataProjectorAccessorRepository(
+            new MetadataSubscriberAccessorRepository(
                 [
                     new ProfileProjector($connection),
                     new SendEmailProcessor(),

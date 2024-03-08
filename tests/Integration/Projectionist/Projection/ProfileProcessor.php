@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcing\Tests\Integration\Projectionist\Projection;
 
-use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Subscribe;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
 use Patchlevel\EventSourcing\EventBus\Message;
 use Patchlevel\EventSourcing\Repository\RepositoryManager;
 use Patchlevel\EventSourcing\Tests\Integration\Projectionist\Aggregate\Profile;
@@ -13,7 +13,7 @@ use Patchlevel\EventSourcing\Tests\Integration\Projectionist\Events\ProfileCreat
 
 use function assert;
 
-#[Projector('profile')]
+#[Subscriber('profile')]
 final class ProfileProcessor
 {
     public function __construct(

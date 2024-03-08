@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Patchlevel\EventSourcing\Tests\Integration\Projectionist\Projection;
 
-use Patchlevel\EventSourcing\Attribute\Projector;
 use Patchlevel\EventSourcing\Attribute\Setup;
 use Patchlevel\EventSourcing\Attribute\Subscribe;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
 use Patchlevel\EventSourcing\Attribute\Teardown;
 use Patchlevel\EventSourcing\EventBus\Message;
 use RuntimeException;
 
-#[Projector('error_producer')]
+#[Subscriber('error_producer')]
 final class ErrorProducerProjector
 {
     public bool $setupError = false;

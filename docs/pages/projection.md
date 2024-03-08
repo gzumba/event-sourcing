@@ -16,13 +16,13 @@ To do this, you can use the `Projector` attribute.
 
 ```php
 use Doctrine\DBAL\Connection;
-use Patchlevel\EventSourcing\Attribute\Projector;
-use Patchlevel\EventSourcing\Projection\Projector\ProjectorUtil;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
+use Patchlevel\EventSourcing\Projection\Subscriber\SubscriberUtil;
 
-#[Projector('profile_1')]
+#[Subscriber('profile_1')]
 final class ProfileProjector
 {
-    use ProjectorUtil;
+    use SubscriberUtil;
 
     public function __construct(
         private readonly Connection $connection
@@ -52,14 +52,14 @@ The method name itself doesn't matter.
 
 ```php
 use Patchlevel\EventSourcing\Attribute\Subscribe;
-use Patchlevel\EventSourcing\Attribute\Projector;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
 use Patchlevel\EventSourcing\EventBus\Message;
-use Patchlevel\EventSourcing\Projection\Projector\ProjectorUtil;
+use Patchlevel\EventSourcing\Projection\Subscriber\SubscriberUtil;
 
-#[Projector('profile_1')]
+#[Subscriber('profile_1')]
 final class ProfileProjector
 {
-    use ProjectorUtil;
+    use SubscriberUtil;
     
     // ...
     
@@ -109,13 +109,13 @@ as the target does it automatically, so you can skip this.
 ```php
 use Patchlevel\EventSourcing\Attribute\Setup;
 use Patchlevel\EventSourcing\Attribute\Teardown;
-use Patchlevel\EventSourcing\Attribute\Projector;
-use Patchlevel\EventSourcing\Projection\Projector\ProjectorUtil;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
+use Patchlevel\EventSourcing\Projection\Subscriber\SubscriberUtil;
 
-#[Projector('profile_1')]
+#[Subscriber('profile_1')]
 final class ProfileProjector
 {
-    use ProjectorUtil;
+    use SubscriberUtil;
     
     // ...
 
@@ -160,13 +160,13 @@ You can also implement your read model here.
 You can offer methods that then read the data and put it into a specific format.
 
 ```php
-use Patchlevel\EventSourcing\Attribute\Projector;
-use Patchlevel\EventSourcing\Projection\Projector\ProjectorUtil;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
+use Patchlevel\EventSourcing\Projection\Subscriber\SubscriberUtil;
 
-#[Projector('profile_1')]
+#[Subscriber('profile_1')]
 final class ProfileProjector
 {
-    use ProjectorUtil;
+    use SubscriberUtil;
 
     // ...
 
@@ -198,9 +198,9 @@ Otherwise, the projectionist will not recognize that the projection has changed 
 To do this, you can add a version to the `projectorId`:
 
 ```php
-use Patchlevel\EventSourcing\Attribute\Projector;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
 
-#[Projector('profile_2')]
+#[Subscriber('profile_2')]
 final class ProfileProjector
 {
    // ...
@@ -218,9 +218,9 @@ You can also group projectors and address these to the projectionist.
 This is useful if you want to run projectors in different processes or on different servers.
 
 ```php
-use Patchlevel\EventSourcing\Attribute\Projector;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
 
-#[Projector('profile_1', group: 'a')]
+#[Subscriber('profile_1', group: 'a')]
 final class ProfileProjector
 {
    // ...
@@ -242,10 +242,10 @@ This is the default mode.
 The projector will start from the beginning of the event stream and process all events.
 
 ```php
-use Patchlevel\EventSourcing\Attribute\Projector;
-use Patchlevel\EventSourcing\Projection\Projection\RunMode;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
+use Patchlevel\EventSourcing\Projection\Subscription\RunMode;
 
-#[Projector('welcome_email', runMode: RunMode::FromBeginning)]
+#[Subscriber('welcome_email', runMode: RunMode::FromBeginning)]
 final class WelcomeEmailProjector
 {
    // ...
@@ -259,10 +259,10 @@ This is useful for projectors that are only interested in events that occur afte
 As example, a welcome email projector that only wants to send emails to new users.
 
 ```php
-use Patchlevel\EventSourcing\Attribute\Projector;
-use Patchlevel\EventSourcing\Projection\Projection\RunMode;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
+use Patchlevel\EventSourcing\Projection\Subscription\RunMode;
 
-#[Projector('welcome_email', runMode: RunMode::FromNow)]
+#[Subscriber('welcome_email', runMode: RunMode::FromNow)]
 final class WelcomeEmailProjector
 {
    // ...
@@ -275,10 +275,10 @@ This mode is useful for projectors that only need to run once.
 This is useful for projectors to create reports or to migrate data.
 
 ```php
-use Patchlevel\EventSourcing\Attribute\Projector;
-use Patchlevel\EventSourcing\Projection\Projection\RunMode;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
+use Patchlevel\EventSourcing\Projection\Subscription\RunMode;
 
-#[Projector('migration', runMode: RunMode::Once)]
+#[Subscriber('migration', runMode: RunMode::Once)]
 final class MigrationProjector
 {
    // ...
@@ -419,9 +419,9 @@ The Projectionist uses a projection store to store the status of each projection
 We provide a Doctrine implementation of this by default.
 
 ```php
-use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
+use Patchlevel\EventSourcing\Projection\Store\DoctrineSubscriptionStore;
 
-$projectionStore = new DoctrineStore($connection);
+$projectionStore = new DoctrineSubscriptionStore($connection);
 ```
 
 So that the schema for the projection store can also be created,
@@ -475,9 +475,9 @@ The projector accessor is responsible for providing the projectors to the projec
 We provide a metadata projector accessor repository by default.
 
 ```php
-use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorAccessorRepository;
+use Patchlevel\EventSourcing\Projection\Subscriber\MetadataSubscriberAccessorRepository;
 
-$projectorAccessorRepository = new MetadataProjectorAccessorRepository([$projector1, $projector2, $projector3]);
+$projectorAccessorRepository = new MetadataSubscriberAccessorRepository([$projector1, $projector2, $projector3]);
 ```
 
 ### Projectionist
@@ -487,9 +487,9 @@ The event store is needed to load the events, the Projection Store to store the 
 and the respective projectors. Optionally, we can also pass a retry strategy.
 
 ```php
-use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
+use Patchlevel\EventSourcing\Projection\Engine\DefaultSubscriptionEngine;
 
-$projectionist = new DefaultProjectionist(
+$projectionist = new DefaultSubscriptionEngine(
     $eventStore,
     $projectionStore,
     $projectorAccessorRepository,
@@ -503,9 +503,9 @@ The Projectionist has a few methods needed to use it effectively.
 A `ProjectionistCriteria` can be passed to all of these methods to filter the respective projectors.
 
 ```php
-use Patchlevel\EventSourcing\Projection\Projectionist\ProjectionistCriteria;
+use Patchlevel\EventSourcing\Projection\Engine\SubscriptionEngineCriteria;
 
-$criteria = new ProjectionistCriteria(
+$criteria = new SubscriptionEngineCriteria(
     ids: ['profile_1', 'welcome_email'],
     groups: ['default']
 );

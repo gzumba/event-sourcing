@@ -161,15 +161,15 @@ use Doctrine\DBAL\Connection;
 use Patchlevel\EventSourcing\Attribute\Setup;
 use Patchlevel\EventSourcing\Attribute\Teardown;
 use Patchlevel\EventSourcing\Attribute\Subscribe;
-use Patchlevel\EventSourcing\Attribute\Projector;
+use Patchlevel\EventSourcing\Attribute\Subscriber;
 use Patchlevel\EventSourcing\EventBus\Message;
-use Patchlevel\EventSourcing\Projection\Projection\ProjectionId;
-use Patchlevel\EventSourcing\Projection\Projector\ProjectorUtil;
+use Patchlevel\EventSourcing\Projection\Subscription\ProjectionId;
+use Patchlevel\EventSourcing\Projection\Subscriber\SubscriberUtil;
 
-#[Projector('hotel')]
+#[Subscriber('hotel')]
 final class HotelProjector
 {
-    use ProjectorUtil;
+    use SubscriberUtil;
 
     public function __construct(
         private readonly Connection $db
@@ -277,14 +277,7 @@ final class SendCheckInEmailProcessor
 After we have defined everything, we still have to plug the whole thing together:
 
 ```php
-use Doctrine\DBAL\DriverManager;
-use Patchlevel\EventSourcing\EventBus\DefaultEventBus;
-use Patchlevel\EventSourcing\Projection\Projection\Store\DoctrineStore;
-use Patchlevel\EventSourcing\Projection\Projectionist\DefaultProjectionist;
-use Patchlevel\EventSourcing\Projection\Projector\MetadataProjectorAccessorRepository;
-use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;
-use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;
-use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
+use Doctrine\DBAL\DriverManager;use Patchlevel\EventSourcing\EventBus\DefaultEventBus;use Patchlevel\EventSourcing\Projection\Engine\DefaultSubscriptionEngine;use Patchlevel\EventSourcing\Projection\Subscriber\MetadataSubscriberAccessorRepository;use Patchlevel\EventSourcing\Projection\Store\DoctrineSubscriptionStore;use Patchlevel\EventSourcing\Repository\DefaultRepositoryManager;use Patchlevel\EventSourcing\Serializer\DefaultEventSerializer;use Patchlevel\EventSourcing\Store\DoctrineDbalStore;
 
 $connection = DriverManager::getConnection([
     'url' => 'mysql://user:secret@localhost/app'
@@ -307,13 +300,13 @@ $eventStore = new DoctrineDbalStore(
 
 $hotelProjector = new HotelProjector($projectionConnection);
 
-$projectorRepository = new MetadataProjectorAccessorRepository([
+$projectorRepository = new MetadataSubscriberAccessorRepository([
     $hotelProjector,
 ]);
 
-$projectionStore = new DoctrineStore($connection);
+$projectionStore = new DoctrineSubscriptionStore($connection);
 
-$projectionist = new DefaultProjectionist(
+$projectionist = new DefaultSubscriptionEngine(
     $eventStore,
     $projectionStore,
     $projectorRepository,
